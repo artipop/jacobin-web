@@ -48,6 +48,29 @@
 <script>
 import { defineComponent, ref } from 'vue'
 import EssentialLink from 'components/EssentialLink.vue'
+import { fs } from 'memfs';
+import '../stores/wasm_exec.js';
+
+const javahome = "/aaa";
+fs.mkdirSync(javahome, error => {})
+fs.mkdirSync('/bbb', error => {})
+
+fs.writeFileSync(javahome + '/release', `JAVA_VERSION="17.0.7"
+JAVA_VERSION_DATE="2023-04-18"
+MODULES="java.base java.compiler java.datatransfer java.xml java.prefs java.desktop java.instrument java.logging java.management java.security.sasl java.naming java.rmi java.management.rmi java.net.http java.scripting java.security.jgss java.transaction.xa java.sql java.sql.rowset java.xml.crypto java.se java.smartcardio jdk.accessibility jdk.internal.jvmstat jdk.attach jdk.charsets jdk.compiler jdk.crypto.ec jdk.crypto.cryptoki jdk.dynalink jdk.internal.ed jdk.editpad jdk.hotspot.agent jdk.httpserver jdk.incubator.foreign jdk.incubator.vector jdk.internal.le jdk.internal.opt jdk.internal.vm.ci jdk.internal.vm.compiler jdk.internal.vm.compiler.management jdk.jartool jdk.javadoc jdk.jcmd jdk.management jdk.management.agent jdk.jconsole jdk.jdeps jdk.jdwp.agent jdk.jdi jdk.jfr jdk.jlink jdk.jpackage jdk.jshell jdk.jsobject jdk.jstatd jdk.localedata jdk.management.jfr jdk.naming.dns jdk.naming.rmi jdk.net jdk.nio.mapmode jdk.random jdk.sctp jdk.security.auth jdk.security.jgss jdk.unsupported jdk.unsupported.desktop jdk.xml.dom jdk.zipfs"
+`);
+let readFileSync = fs.readFileSync( javahome + '/release', 'utf8');
+console.log(readFileSync);
+
+if (WebAssembly) {
+  const go = new Go();
+  go.env = { "JAVA_HOME": javahome, "HOME": '/ccc' }
+  WebAssembly.instantiateStreaming(fetch("jacobin7.wasm"), go.importObject).then((result) => {
+    go.run(result.instance);
+  });
+} else {
+  console.log("WebAssembly is not supported in your browser")
+}
 
 const linksList = [
   {
@@ -103,6 +126,8 @@ export default defineComponent({
 
   setup () {
     const leftDrawerOpen = ref(false)
+
+
 
     return {
       essentialLinks: linksList,
